@@ -33,7 +33,8 @@ jobs:
         run: |
           for i in $(seq 1 40); do
             if az webapp show --name "$AZURE_WEBAPP_NAME" --resource-group "$RESOURCE_GROUP" --output none 2>/dev/null; then
-              echo "Web App encontrada"; exit 0
+              # Recién creada, la Web App tarda en aparecer para azure/webapps-deploy: se espera un minuto más
+              echo "Web App encontrada; esperando 60 s a que Azure termine de registrarla"; sleep 60; exit 0
             fi
             echo "La Web App aún no existe ($i/40), esperando..."; sleep 30
           done
