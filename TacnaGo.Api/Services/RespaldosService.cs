@@ -24,7 +24,7 @@ public class RespaldosService
         var lista = new List<Respaldo>();
         if (_container is null) return lista;
 
-        await foreach (var blob in _container.GetBlobsAsync(BlobTraits.Metadata, BlobStates.None, prefix: "tacnago/"))
+        await foreach (var blob in _container.GetBlobsAsync(BlobTraits.Metadata, BlobStates.None, "tacnago/", CancellationToken.None))
         {
             int? docs = blob.Metadata.TryGetValue("documentos", out var d) && int.TryParse(d, out var n) ? n : null;
             lista.Add(new Respaldo(
