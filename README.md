@@ -78,6 +78,24 @@ Cada respuesta trae el encabezado `x-ru-charge` con el costo de la operación en
 
 Secrets del repositorio: `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (service principal con rol Contributor) y `GHCR_PAT` (token con `read:packages` para que App Service descargue la imagen). La clave de Cosmos DB no está en GitHub: Terraform la pasa directamente a la configuración de la Web App.
 
+## Estrategia de respaldo (Actividad Grupal 02)
+
+| Capa | Qué hace | Dónde | Retención |
+|---|---|---|---|
+| 1. Respaldo nativo de Cosmos DB | Copias automáticas periódicas de toda la cuenta (cada 4 horas, 2 copias), administradas por Azure | Almacenamiento de Azure (geo-redundante) | 8 horas |
+| 2. Respaldo lógico diario | `backup.yml` exporta el contenedor `Lugares` a JSON comprimido con SHA-256 | Azure Blob Storage `sttacnagobkgerald/cosmos-backups` (versionado y borrado temporal de 7 días) | Hot 7 días, Cool hasta el día 37 |
+| 3. Copia fuera de Azure | El mismo archivo como artefacto de GitHub Actions | GitHub | 30 días |
+| 4. Prueba de restauración | `restore.yml` restaura cada domingo el último respaldo en `Lugares-restore` y verifica la cantidad y cada id | Cosmos DB | — |
+
+- **RPO (pérdida máxima de datos):** 24 horas con el respaldo lógico; hasta 4 horas con el respaldo nativo.
+- **RTO (tiempo de recuperación):** unos minutos: se ejecuta `restore.yml` con destino `Lugares`.
+- La app muestra los respaldos guardados en la sección *Respaldos de la base de datos* y en `GET /api/respaldos`.
+
+| Workflow | Cuándo corre | Qué hace |
+|---|---|---|
+| `backup.yml` | todos los días a las 00:00 (Perú) o manual | exporta, sube a Blob Storage y guarda el artefacto |
+| `restore.yml` | cada domingo (prueba) o manual | descarga un respaldo, verifica su SHA-256, lo restaura y comprueba los documentos |
+
 ## Ejecutar en local
 
 Requisitos: .NET 9 SDK y una cuenta de Cosmos DB (o el emulador).
@@ -105,7 +123,8 @@ TacnaGo.Api/          API (Minimal API) + página web en wwwroot/
   Services/           LugaresRepository (consultas y operaciones en Cosmos DB)
 infra/main.tf         Terraform: Cosmos DB + App Service
 data/                 lugares.json y seed.py (carga de datos)
-.github/workflows/    infra, deploydb, buildimage, deployimage
+backup/               backup.py (respaldo lógico) y restore.py (restauración verificada)
+.github/workflows/    infra, deploydb, buildimage, deployimage, backup, restore
 Dockerfile            imagen de dos etapas (SDK -> runtime ASP.NET)
 ```
 

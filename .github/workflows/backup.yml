@@ -1,0 +1,90 @@
+name: Respaldo de Cosmos DB
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # todos los días a las 05:00 UTC (00:00 en Perú)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-tacnago-geraldzvallos
+  STORAGE_ACCOUNT: sttacnagobkgerald
+  BLOB_CONTAINER: cosmos-backups
+  COSMOS_RG: rg-qa-bitacora
+  COSMOS_ACCOUNT: qa-bitacora-cosmos-gzp
+  COSMOS_DATABASE: TacnaGo
+  COSMOS_CONTAINER: Lugares
+
+jobs:
+  backup:
+    name: Respaldo lógico a Blob Storage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Iniciar sesión en Azure (service principal)
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Obtener endpoint y clave de Cosmos DB
+        run: |
+          ENDPOINT=$(az cosmosdb show --name "$COSMOS_ACCOUNT" --resource-group "$COSMOS_RG" --query documentEndpoint -o tsv)
+          KEY=$(az cosmosdb keys list --name "$COSMOS_ACCOUNT" --resource-group "$COSMOS_RG" --type keys --query primaryMasterKey -o tsv)
+          echo "::add-mask::$KEY"
+          echo "COSMOS_ENDPOINT=$ENDPOINT" >> "$GITHUB_ENV"
+          echo "COSMOS_KEY=$KEY" >> "$GITHUB_ENV"
+
+      - name: Obtener la clave de la cuenta de respaldos
+        run: |
+          SKEY=$(az storage account keys list --account-name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query "[0].value" -o tsv)
+          echo "::add-mask::$SKEY"
+          echo "AZURE_STORAGE_KEY=$SKEY" >> "$GITHUB_ENV"
+          echo "AZURE_STORAGE_ACCOUNT=$STORAGE_ACCOUNT" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar el SDK de Cosmos DB para Python
+        run: pip install -r backup/requirements.txt
+
+      - name: Exportar el contenedor Lugares (backup.py)
+        id: respaldo
+        run: python backup/backup.py respaldo
+
+      - name: Subir el respaldo a Azure Blob Storage
+        run: |
+          az storage blob upload --only-show-errors \
+            --container-name "$BLOB_CONTAINER" \
+            --name "tacnago/${{ steps.respaldo.outputs.nombre }}" \
+            --file "${{ steps.respaldo.outputs.archivo }}" \
+            --metadata documentos=${{ steps.respaldo.outputs.documentos }} sha256=${{ steps.respaldo.outputs.sha256 }} \
+            --output none
+          echo "Respaldos guardados (más recientes primero):"
+          az storage blob list --container-name "$BLOB_CONTAINER" --prefix tacnago/ \
+            --query "reverse(sort_by([], &properties.lastModified))[:7].{Respaldo:name, Fecha:properties.lastModified, Bytes:properties.contentLength, Nivel:properties.blobTier}" -o table
+
+      # Segunda copia fuera de Azure: artefacto de GitHub Actions (se conserva 30 días)
+      - name: Guardar una copia como artefacto de GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.respaldo.outputs.nombre }}
+          path: ${{ steps.respaldo.outputs.archivo }}
+          retention-days: 30
+
+      - name: Resumen
+        run: |
+          {
+            echo "## Respaldo creado"
+            echo ""
+            echo "| Dato | Valor |"
+            echo "|---|---|"
+            echo "| Archivo | \`tacnago/${{ steps.respaldo.outputs.nombre }}\` |"
+            echo "| Documentos | ${{ steps.respaldo.outputs.documentos }} |"
+            echo "| SHA-256 | \`${{ steps.respaldo.outputs.sha256 }}\` |"
+            echo "| Copia 1 | Azure Blob Storage \`$STORAGE_ACCOUNT/$BLOB_CONTAINER\` |"
+            echo "| Copia 2 | Artefacto de GitHub Actions (30 días) |"
+          } >> "$GITHUB_STEP_SUMMARY"

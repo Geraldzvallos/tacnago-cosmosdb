@@ -111,6 +111,74 @@ resource "azurerm_cosmosdb_sql_container" "lugares" {
   }
 }
 
+# Contenedor de prueba: el workflow restore.yml restaura aquí el último respaldo cada semana
+# para comprobar que los respaldos sirven (usa los RU/s compartidos de la base, sin costo extra).
+resource "azurerm_cosmosdb_sql_container" "lugares_restore" {
+  name                  = "Lugares-restore"
+  resource_group_name   = data.azurerm_cosmosdb_account.cosmos.resource_group_name
+  account_name          = data.azurerm_cosmosdb_account.cosmos.name
+  database_name         = azurerm_cosmosdb_sql_database.db.name
+  partition_key_paths   = ["/categoria"]
+  partition_key_version = 2
+}
+
+# ------------------------------------------------------------------
+# Respaldos lógicos: Azure Blob Storage (cuenta separada de la base de datos)
+# ------------------------------------------------------------------
+resource "azurerm_storage_account" "backups" {
+  name                            = "sttacnagobk${substr(var.suffix, 0, 6)}"
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
+  blob_properties {
+    versioning_enabled = true # cada sobrescritura guarda la versión anterior
+
+    delete_retention_policy {
+      days = 7 # un respaldo borrado por error se puede recuperar durante 7 días
+    }
+
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
+}
+
+resource "azurerm_storage_container" "backups" {
+  name                  = "cosmos-backups"
+  storage_account_id    = azurerm_storage_account.backups.id
+  container_access_type = "private"
+}
+
+# Política de retención: Hot los primeros 7 días, luego Cool (más barato) y se borra a los 37 días
+resource "azurerm_storage_management_policy" "retencion" {
+  storage_account_id = azurerm_storage_account.backups.id
+
+  rule {
+    name    = "retencion-respaldos"
+    enabled = true
+
+    filters {
+      prefix_match = ["cosmos-backups/tacnago/"]
+      blob_types   = ["blockBlob"]
+    }
+
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than = 7
+        delete_after_days_since_modification_greater_than       = 37
+      }
+
+      version {
+        delete_after_days_since_creation = 37
+      }
+    }
+  }
+}
+
 # ------------------------------------------------------------------
 # Backend: Azure App Service (Linux, plan F1 gratuito) con contenedor
 # ------------------------------------------------------------------
@@ -143,11 +211,13 @@ resource "azurerm_linux_web_app" "app" {
   # ASP.NET Core lee Cosmos__Endpoint como la clave Cosmos:Endpoint de la configuración.
   # La clave de Cosmos DB va de Terraform a la Web App: no está en el código ni en GitHub.
   app_settings = {
-    "WEBSITES_PORT"     = "8080"
-    "Cosmos__Endpoint"  = data.azurerm_cosmosdb_account.cosmos.endpoint
-    "Cosmos__Key"       = data.azurerm_cosmosdb_account.cosmos.primary_key
-    "Cosmos__Database"  = azurerm_cosmosdb_sql_database.db.name
-    "Cosmos__Container" = azurerm_cosmosdb_sql_container.lugares.name
+    "WEBSITES_PORT"            = "8080"
+    "Cosmos__Endpoint"         = data.azurerm_cosmosdb_account.cosmos.endpoint
+    "Cosmos__Key"              = data.azurerm_cosmosdb_account.cosmos.primary_key
+    "Cosmos__Database"         = azurerm_cosmosdb_sql_database.db.name
+    "Cosmos__Container"        = azurerm_cosmosdb_sql_container.lugares.name
+    "Backup__ConnectionString" = azurerm_storage_account.backups.primary_connection_string
+    "Backup__Container"        = azurerm_storage_container.backups.name
   }
 
   # La imagen la cambia deployimage.yml en cada despliegue; Terraform no debe revertirla.
@@ -173,4 +243,8 @@ output "webapp_name" {
 
 output "webapp_url" {
   value = "https://${azurerm_linux_web_app.app.default_hostname}"
+}
+
+output "backup_storage_account" {
+  value = azurerm_storage_account.backups.name
 }

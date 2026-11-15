@@ -114,7 +114,24 @@ $('#form-nuevo').addEventListener('submit', async (ev) => {
   } catch (e) { mostrarError(e); }
 });
 
+async function cargarRespaldos() {
+  const tbody = $('#lista-respaldos');
+  try {
+    const r = await fetch('/api/respaldos');
+    const lista = r.ok ? await r.json() : [];
+    tbody.innerHTML = lista.length === 0
+      ? '<tr><td colspan="5">Todavía no hay respaldos.</td></tr>'
+      : lista.map((b) => `<tr>
+          <td>${esc(b.nombre)}</td>
+          <td>${b.fecha ? new Date(b.fecha).toLocaleString('es-PE') : ''}</td>
+          <td>${b.documentos ?? ''}</td>
+          <td>${b.tamanoKB} KB</td>
+          <td>${esc(b.nivel)}</td></tr>`).join('');
+  } catch { tbody.innerHTML = '<tr><td colspan="5">No se pudieron cargar los respaldos.</td></tr>'; }
+}
+
 (async () => {
   try { await cargarCategorias(); } catch (e) { mostrarError(e); }
   await cargarLugares();
+  await cargarRespaldos();
 })();

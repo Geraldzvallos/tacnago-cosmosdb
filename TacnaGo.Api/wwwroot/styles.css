@@ -40,3 +40,8 @@ button:hover { filter: brightness(1.08); }
 .campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 14px; }
 footer { color: var(--muted); font-size: .85rem; padding: 10px 16px 30px; }
 @media (max-width: 600px) { .hero h1 { font-size: 1.9rem; } .buscar { width: 100%; } }
+.nota { color: var(--muted); font-size: .9rem; line-height: 1.5; margin: 0 0 12px; }
+.tabla { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.tabla th, .tabla td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.tabla th { color: var(--muted); font-weight: 600; }
+.tabla td:first-child { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; word-break: break-all; }

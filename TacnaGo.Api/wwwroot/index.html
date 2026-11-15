@@ -36,6 +36,17 @@
     <p id="error" class="error" hidden></p>
     <section id="lista" class="grid"></section>
 
+    <section class="nuevo" id="respaldos">
+      <h2>Respaldos de la base de datos</h2>
+      <p class="nota">Cada día GitHub Actions exporta el contenedor <b>Lugares</b> de Cosmos DB a un archivo JSON comprimido
+         y lo guarda en Azure Blob Storage (versionado, borrado temporal de 7 días, nivel Cool a los 7 días y eliminación a los 30).
+         Cada semana se restaura el último respaldo en el contenedor <b>Lugares-restore</b> para comprobar que funciona.</p>
+      <table class="tabla">
+        <thead><tr><th>Respaldo</th><th>Fecha</th><th>Documentos</th><th>Tamaño</th><th>Nivel</th></tr></thead>
+        <tbody id="lista-respaldos"><tr><td colspan="5">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+
     <section class="nuevo">
       <h2>Agregar un lugar</h2>
       <form id="form-nuevo">

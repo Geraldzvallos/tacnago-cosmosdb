@@ -27,6 +27,10 @@ builder.Services.AddSingleton(sp =>
 });
 builder.Services.AddSingleton<LugaresRepository>();
 
+// Respaldos lógicos en Azure Blob Storage (sección "Backup"; en Azure la define Terraform)
+builder.Services.Configure<BackupSettings>(builder.Configuration.GetSection("Backup"));
+builder.Services.AddSingleton<RespaldosService>();
+
 // La plantilla de .NET 9 ya no trae Swagger: se usa Swashbuckle para /swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new()
@@ -103,6 +107,13 @@ api.MapDelete("/lugares/{categoria}/{id}", async (string categoria, string id, L
         return Results.NoContent();
     })
     .WithSummary("Elimina un lugar.");
+
+app.MapGet("/api/respaldos", async (RespaldosService respaldos) =>
+        respaldos.Configurado
+            ? Results.Ok(await respaldos.ListarAsync())
+            : Results.Ok(Array.Empty<Respaldo>()))
+    .WithTags("Respaldos")
+    .WithSummary("Lista los respaldos lógicos de Cosmos DB guardados en Azure Blob Storage.");
 
 app.Run();
 
