@@ -1,0 +1,55 @@
+name: Despliegue en Azure App Service
+
+on:
+  workflow_run:
+    workflows: [ "Build y publicación de la imagen" ]
+    types: [ completed ]
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AZURE_WEBAPP_NAME: app-tacnago-geraldzvallos
+  RESOURCE_GROUP: rg-tacnago-geraldzvallos
+  IMAGE: ghcr.io/geraldzvallos/tacnago-api
+
+jobs:
+  deploy:
+    name: Desplegar contenedor
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
+    steps:
+      - name: Iniciar sesión en Azure (service principal)
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Esperar a que exista la Web App (la crea infra.yml)
+        run: |
+          for i in $(seq 1 40); do
+            if az webapp show --name "$AZURE_WEBAPP_NAME" --resource-group "$RESOURCE_GROUP" --output none 2>/dev/null; then
+              echo "Web App encontrada"; exit 0
+            fi
+            echo "La Web App aún no existe ($i/40), esperando..."; sleep 30
+          done
+          echo "La Web App no existe; ejecute primero infra.yml"; exit 1
+
+      - name: Desplegar la imagen publicada
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          images: ${{ env.IMAGE }}:${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Probar la app desplegada
+        run: |
+          URL="https://${AZURE_WEBAPP_NAME}.azurewebsites.net/api/categorias"
+          for i in $(seq 1 24); do
+            if curl -fsS --max-time 30 "$URL"; then echo; echo "App respondiendo en $URL"; exit 0; fi
+            echo "Esperando que el contenedor inicie ($i/24)..."; sleep 15
+          done
+          echo "La app no respondió a tiempo"; exit 1

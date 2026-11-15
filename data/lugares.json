@@ -1,0 +1,186 @@
+[
+  {
+    "id": "catedral-de-tacna",
+    "categoria": "historia",
+    "nombre": "Catedral de Tacna",
+    "provincia": "Tacna",
+    "distrito": "Tacna",
+    "descripcion": "Templo de piedra frente a la Plaza de Armas, uno de los símbolos del centro histórico de la ciudad.",
+    "tags": [
+      "centro",
+      "arquitectura",
+      "plaza de armas"
+    ],
+    "detalles": {
+      "zona": "Plaza de Armas"
+    }
+  },
+  {
+    "id": "arco-parabolico",
+    "categoria": "historia",
+    "nombre": "Arco Parabólico",
+    "provincia": "Tacna",
+    "distrito": "Tacna",
+    "descripcion": "Monumento del Paseo Cívico dedicado a los héroes peruanos de la Guerra del Pacífico.",
+    "tags": [
+      "centro",
+      "monumento",
+      "foto"
+    ]
+  },
+  {
+    "id": "alto-de-la-alianza",
+    "categoria": "historia",
+    "nombre": "Complejo Monumental Alto de la Alianza",
+    "provincia": "Tacna",
+    "distrito": "Ciudad Nueva",
+    "descripcion": "Mirador y monumento en el lugar de la batalla del Alto de la Alianza (1880), con vista a la ciudad.",
+    "tags": [
+      "mirador",
+      "monumento",
+      "historia militar"
+    ],
+    "detalles": {
+      "anio": "1880"
+    }
+  },
+  {
+    "id": "museo-ferroviario",
+    "categoria": "museos",
+    "nombre": "Museo Ferroviario",
+    "provincia": "Tacna",
+    "distrito": "Tacna",
+    "descripcion": "Funciona en la antigua estación del ferrocarril Tacna–Arica; exhibe locomotoras y objetos del ferrocarril.",
+    "tags": [
+      "centro",
+      "tren",
+      "familia"
+    ]
+  },
+  {
+    "id": "casa-de-zela",
+    "categoria": "museos",
+    "nombre": "Casa de Francisco Antonio de Zela",
+    "provincia": "Tacna",
+    "distrito": "Tacna",
+    "descripcion": "Casona colonial donde vivió el prócer que en 1811 encabezó el primer grito de libertad en Tacna.",
+    "tags": [
+      "centro",
+      "colonial",
+      "historia"
+    ],
+    "detalles": {
+      "anio": "1811"
+    }
+  },
+  {
+    "id": "playa-boca-del-rio",
+    "categoria": "playas",
+    "nombre": "Playa Boca del Río",
+    "provincia": "Tacna",
+    "distrito": "Sama",
+    "descripcion": "Balneario en la desembocadura del río Sama, muy concurrido por las familias tacneñas en verano.",
+    "tags": [
+      "playa",
+      "verano",
+      "familia"
+    ]
+  },
+  {
+    "id": "playa-los-palos",
+    "categoria": "playas",
+    "nombre": "Playa Los Palos",
+    "provincia": "Tacna",
+    "distrito": "La Yarada Los Palos",
+    "descripcion": "Playa cercana a la ciudad, al sur del litoral de Tacna, con caletas de pescadores.",
+    "tags": [
+      "playa",
+      "pesca",
+      "verano"
+    ]
+  },
+  {
+    "id": "picanterias-de-pocollay",
+    "categoria": "gastronomia",
+    "nombre": "Picanterías de Pocollay",
+    "provincia": "Tacna",
+    "distrito": "Pocollay",
+    "descripcion": "Restaurantes campestres donde se prueba el picante a la tacneña y la patasca.",
+    "tags": [
+      "comida tipica",
+      "campestre",
+      "familia"
+    ],
+    "detalles": {
+      "platoTipico": "Picante a la tacneña"
+    }
+  },
+  {
+    "id": "campestres-de-calana",
+    "categoria": "gastronomia",
+    "nombre": "Restaurantes campestres de Calana",
+    "provincia": "Tacna",
+    "distrito": "Calana",
+    "descripcion": "Zona de chacras y restaurantes al aire libre en el valle, ideal para almorzar el fin de semana.",
+    "tags": [
+      "comida tipica",
+      "campestre",
+      "valle"
+    ]
+  },
+  {
+    "id": "petroglifos-de-miculla",
+    "categoria": "naturaleza",
+    "nombre": "Petroglifos de Miculla",
+    "provincia": "Tacna",
+    "distrito": "Pachía",
+    "descripcion": "Campo de grabados rupestres en las rocas del valle, con puentes colgantes para recorrer la quebrada.",
+    "tags": [
+      "arqueologia",
+      "caminata",
+      "puente colgante"
+    ]
+  },
+  {
+    "id": "termales-de-calientes",
+    "categoria": "naturaleza",
+    "nombre": "Baños termales de Calientes",
+    "provincia": "Tacna",
+    "distrito": "Pachía",
+    "descripcion": "Pozas de aguas termales en la parte alta del valle de Tacna.",
+    "tags": [
+      "aguas termales",
+      "relax",
+      "valle"
+    ]
+  },
+  {
+    "id": "laguna-aricota",
+    "categoria": "naturaleza",
+    "nombre": "Laguna de Aricota",
+    "provincia": "Candarave",
+    "distrito": "Curibaya",
+    "descripcion": "Laguna andina de aguas turquesa rodeada de cerros, a varias horas de la ciudad.",
+    "tags": [
+      "laguna",
+      "andes",
+      "foto"
+    ]
+  },
+  {
+    "id": "pueblo-de-tarata",
+    "categoria": "pueblos",
+    "nombre": "Tarata",
+    "provincia": "Tarata",
+    "distrito": "Tarata",
+    "descripcion": "Pueblo andino con andenes, iglesia colonial y paisajes de la sierra tacneña.",
+    "tags": [
+      "andes",
+      "andenes",
+      "colonial"
+    ],
+    "detalles": {
+      "altitud": "más de 3000 m s. n. m."
+    }
+  }
+]

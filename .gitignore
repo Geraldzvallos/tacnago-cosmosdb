@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Terraform
+infra/.terraform/
+*.tfplan
+tfplan
+*.tfstate
+*.tfstate.*
+
+# Python
+__pycache__/
+.venv/
+
+# Sistema
+.DS_Store
+Thumbs.db

@@ -1,0 +1,47 @@
+name: Build y publicación de la imagen
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'TacnaGo.Api/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/buildimage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Construir y publicar en GitHub Packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Nombre de la imagen (en minúsculas)
+        id: img
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/tacnago-api" >> "$GITHUB_OUTPUT"
+
+      - name: Iniciar sesión en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Construir y publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.img.outputs.name }}:latest
+            ${{ steps.img.outputs.name }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.description=TacnaGo - API .NET 9 con Azure Cosmos DB for NoSQL

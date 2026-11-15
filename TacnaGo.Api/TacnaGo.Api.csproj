@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>TacnaGo.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft.Azure.Cosmos se agrega con "dotnet add package" (última versión estable) -->
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.64.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+
+</Project>

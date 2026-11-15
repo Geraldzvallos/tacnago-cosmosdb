@@ -1,0 +1,54 @@
+name: Carga de datos en Cosmos DB
+
+on:
+  # Se ejecuta cuando termina bien la infraestructura o cuando cambian los datos
+  workflow_run:
+    workflows: [ "Infraestructura (Terraform)" ]
+    types: [ completed ]
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'data/**'
+      - '.github/workflows/deploydb.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-qa-bitacora            # grupo de la cuenta de Cosmos DB con capa gratuita
+  COSMOS_ACCOUNT: qa-bitacora-cosmos-gzp
+  COSMOS_DATABASE: TacnaGo
+  COSMOS_CONTAINER: Lugares
+
+jobs:
+  seed:
+    name: Cargar lugares de ejemplo
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Iniciar sesión en Azure (service principal)
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Obtener endpoint y clave de Cosmos DB
+        run: |
+          ENDPOINT=$(az cosmosdb show --name "$COSMOS_ACCOUNT" --resource-group "$RESOURCE_GROUP" --query documentEndpoint -o tsv)
+          KEY=$(az cosmosdb keys list --name "$COSMOS_ACCOUNT" --resource-group "$RESOURCE_GROUP" --type keys --query primaryMasterKey -o tsv)
+          echo "::add-mask::$KEY"
+          echo "COSMOS_ENDPOINT=$ENDPOINT" >> "$GITHUB_ENV"
+          echo "COSMOS_KEY=$KEY" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar el SDK de Cosmos DB para Python
+        run: pip install -r data/requirements.txt
+
+      - name: Cargar datos (data/lugares.json)
+        run: python data/seed.py data/lugares.json

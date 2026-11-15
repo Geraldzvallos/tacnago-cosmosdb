@@ -1,0 +1,42 @@
+:root {
+  --bg: #f7f4ef;
+  --card: #ffffff;
+  --ink: #2b2420;
+  --muted: #6f655d;
+  --accent: #b5532b;
+  --accent-2: #2f6f6a;
+  --line: #e4ddd3;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+.hero { background: linear-gradient(120deg, #7a2f17, var(--accent) 55%, #d98b4b); color: #fff; padding: 36px 0 28px; }
+.hero h1 { margin: 0 0 8px; font-size: 2.4rem; letter-spacing: .5px; }
+.hero p { margin: 0 0 14px; max-width: 720px; line-height: 1.5; }
+.hero nav a { color: #fff; margin-right: 18px; font-weight: 600; }
+.barra { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin: 22px 0 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--card); padding: 6px 12px; border-radius: 999px; cursor: pointer; font: inherit; color: var(--ink); }
+.chip.activa { background: var(--accent-2); color: #fff; border-color: var(--accent-2); }
+.buscar { display: flex; gap: 6px; }
+input, textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; width: 100%; }
+button { font: inherit; padding: 8px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
+button:hover { filter: brightness(1.08); }
+.estado { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: .92rem; margin-bottom: 12px; }
+.ru b { color: var(--accent-2); }
+.error { background: #fde8e4; color: #8a2a17; padding: 10px 12px; border-radius: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.card h3 { margin: 0; font-size: 1.08rem; }
+.badge { align-self: flex-start; font-size: .75rem; text-transform: uppercase; letter-spacing: .6px; background: #f1e4d8; color: var(--accent); padding: 2px 8px; border-radius: 6px; }
+.card p { margin: 0; color: var(--muted); line-height: 1.45; font-size: .93rem; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tags span { font-size: .75rem; background: #e6f0ef; color: var(--accent-2); padding: 2px 7px; border-radius: 6px; cursor: pointer; }
+.card .acciones { display: flex; justify-content: space-between; align-items: center; margin-top: auto; font-size: .8rem; color: var(--muted); }
+.card .acciones button { background: transparent; color: #a33a22; padding: 4px 6px; }
+.nuevo { margin: 32px 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.nuevo h2 { margin: 0 0 12px; font-size: 1.2rem; }
+.nuevo label { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: var(--muted); margin-bottom: 10px; }
+.campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 14px; }
+footer { color: var(--muted); font-size: .85rem; padding: 10px 16px 30px; }
+@media (max-width: 600px) { .hero h1 { font-size: 1.9rem; } .buscar { width: 100%; } }

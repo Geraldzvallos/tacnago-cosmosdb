@@ -1,0 +1,79 @@
+name: Infraestructura (Terraform)
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LOCATION: westus3
+  TFSTATE_RG: rg-tfstate-tacnago-geraldzvallos
+  TFSTATE_SA: tfstatetacnagogzp
+  TFSTATE_CONTAINER: tfstate
+  TFSTATE_KEY: tacnago.tfstate
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_ghcr_username: Geraldzvallos
+  TF_VAR_ghcr_password: ${{ secrets.GHCR_PAT }}
+
+jobs:
+  terraform:
+    name: Terraform plan y apply
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Iniciar sesión en Azure (service principal)
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Crear el almacenamiento del estado de Terraform (si no existe)
+        run: |
+          az group create --name "$TFSTATE_RG" --location "$LOCATION" --output none
+          if ! az storage account show --name "$TFSTATE_SA" --resource-group "$TFSTATE_RG" --output none 2>/dev/null; then
+            az storage account create --name "$TFSTATE_SA" --resource-group "$TFSTATE_RG" \
+              --location "$LOCATION" --sku Standard_LRS --min-tls-version TLS1_2 \
+              --allow-blob-public-access false --output none
+          fi
+          KEY=$(az storage account keys list --account-name "$TFSTATE_SA" --resource-group "$TFSTATE_RG" --query "[0].value" -o tsv)
+          az storage container create --name "$TFSTATE_CONTAINER" --account-name "$TFSTATE_SA" --account-key "$KEY" --output none
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$TFSTATE_RG" \
+            -backend-config="storage_account_name=$TFSTATE_SA" \
+            -backend-config="container_name=$TFSTATE_CONTAINER" \
+            -backend-config="key=$TFSTATE_KEY"
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform apply
+        run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Mostrar salidas
+        run: |
+          echo "Cuenta de Cosmos DB: $(terraform output -raw cosmos_account)"
+          echo "Endpoint:            $(terraform output -raw cosmos_endpoint)"
+          echo "Web App:             $(terraform output -raw webapp_url)"

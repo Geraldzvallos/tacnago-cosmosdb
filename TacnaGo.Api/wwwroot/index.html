@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TacnaGo · Lugares de Tacna con Azure Cosmos DB</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <h1>TacnaGo</h1>
+      <p>Guía de lugares turísticos de Tacna guardada en <strong>Azure Cosmos DB for NoSQL</strong>.
+         Cada lugar es un documento JSON y la <strong>categoría</strong> es la clave de partición.</p>
+      <nav>
+        <a href="/swagger">API (Swagger)</a>
+        <a href="https://github.com/Geraldzvallos/tacnago-cosmosdb" target="_blank" rel="noopener">Repositorio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="barra">
+      <div id="chips" class="chips" aria-label="Categorías"></div>
+      <form id="form-buscar" class="buscar">
+        <input id="tag" placeholder="Buscar por etiqueta (ej. playa)" autocomplete="off">
+        <button type="submit">Buscar</button>
+      </form>
+    </section>
+
+    <section class="estado">
+      <span id="modo">Cargando…</span>
+      <span class="ru" title="Costo de la última operación en Cosmos DB">Última operación: <b id="ru">–</b></span>
+    </section>
+
+    <p id="error" class="error" hidden></p>
+    <section id="lista" class="grid"></section>
+
+    <section class="nuevo">
+      <h2>Agregar un lugar</h2>
+      <form id="form-nuevo">
+        <div class="campos">
+          <label>Nombre<input name="nombre" required maxlength="120"></label>
+          <label>Categoría (clave de partición)<input name="categoria" list="categorias" required maxlength="40"></label>
+          <label>Provincia<input name="provincia" maxlength="60"></label>
+          <label>Etiquetas (separadas por comas)<input name="tags" placeholder="mirador, familia"></label>
+        </div>
+        <label>Descripción<textarea name="descripcion" rows="2" maxlength="500"></textarea></label>
+        <datalist id="categorias"></datalist>
+        <button type="submit">Guardar en Cosmos DB</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    Actividad Grupal 01 · Base de Datos II · Universidad Privada de Tacna ·
+    Gerald Zevallos Pinto y Kevin Hinojosa Calloapaza
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
